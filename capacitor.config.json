@@ -1,0 +1,14 @@
+{
+  "appId": "com.lubin.sub1h30",
+  "appName": "Sub-1h30 Lubin",
+  "webDir": "mobile-pwa",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "backgroundColor": "#0A0B0E",
+    "allowMixedContent": true
+  }
+}
