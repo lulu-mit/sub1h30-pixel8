@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0A0B0E" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="./manifest.json" />
+  <title>Sub-1h30 • Lubin Queyroi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0A0B0E;
+      color: #F3F4F6;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      padding-top: env(safe-area-inset-top, 16px);
+      padding-bottom: 92px;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    .min-card {
+      background-color: #12141A;
+      border: 1px solid #232730;
+      border-radius: 18px;
+    }
+    .min-subcard {
+      background-color: #181B22;
+      border: 1px solid #232730;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased px-4 pt-4 max-w-md mx-auto">
+  <!-- En-tête minimaliste connecté à Lubin Queyroi (i778652 • Forerunner 255 + Coros) -->
+  <div class="flex items-center justify-between mb-3 px-1">
+    <div>
+      <div id="pageEyebrow" class="text-xs font-medium tracking-wider text-neutral-500">LUBIN QUEYROI • 66.0 KG • FR 255</div>
+      <div id="pageTitle" class="text-xl font-semibold tracking-tight text-neutral-100">Sub-1h30 • Journal</div>
+    </div>
+    <button onclick="toggleSyncPanel()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#12141A] border border-[#232730] text-xs text-neutral-300 active:scale-95 transition">
+      <span id="syncDot" class="w-2 h-2 rounded-full bg-[#34D399]"></span>
+      <span id="syncStatusShort">Garmin × Docs ✓</span>
+    </button>
+  </div>
+
+  <!-- Panneau d'état de connexion API en direct (repliable) -->
+  <div id="syncDiagnosticDrawer" class="min-card p-3.5 mb-4 hidden">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-neutral-200">Synchronisation Temps Réel Active</span>
+      <button onclick="runLiveSync()" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#181B22] border border-[#232730] text-[#D97757]">
+        ↻ Actualiser
+      </button>
+    </div>
+    <div class="space-y-1.5 text-xs">
+      <div class="flex items-center justify-between py-1 border-b border-[#1B1E26]">
+        <span class="text-neutral-400">Garmin / Intervals.icu (<code class="text-neutral-300">i778652</code>)</span>
+        <span id="diagIntervals" class="font-medium text-[#34D399]">✓ 105 activités • 730j Santé</span>
+      </div>
+      <div class="flex items-center justify-between py-1 border-b border-[#1B1E26]">
+        <span class="text-neutral-400">Doc « Projet Sub-1h30 »</span>
+        <span id="diagDoc1" class="font-medium text-[#34D399]">✓ Synchronisé (22 sem. • Lyon/Paris)</span>
+      </div>
+      <div class="flex items-center justify-between py-1">
+        <span class="text-neutral-400">Doc « Journal d'entraînement »</span>
+        <span id="diagDoc2" class="font-medium text-[#34D399]">✓ Synchronisé (Phase 2 active)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 1 : ACCUEIL
+       Ordre strict :
+       1. Countdown avant la prochaine course (24 janv. Montmartre / 7 mars Paris)
+       2. Prochaine séance (Phase 2 : Développement & Force)
+       3. Indicateur de progression vers Sub-1h30 (Départ 1h37m38s -> < 1h30)
+       4. Récupération Garmin du jour (9h02 sommeil, 51 bpm FC repos)
+       ========================================================= -->
+  <div id="page-home" class="space-y-3.5">
+    <!-- 1. COUNTDOWN AVANT LA PROCHAINE COURSE -->
+    <div class="min-card p-4">
+      <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-[#1B1E26] text-xs">
+        <span class="flex items-center gap-2 text-neutral-400 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#D97757]"></span>
+          Objectif 7 Mars : <strong class="text-neutral-200">Sub-1h30 (&lt; 4'15"/km)</strong>
+        </span>
+        <span class="text-neutral-500 tabular-nums">Réf: 1h37m38s</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#0A0B0E] mb-3">
+        <button id="tabRace0" onclick="selectRace(0)" class="py-1.5 px-2 rounded-lg text-xs font-medium bg-[#181B22] text-neutral-100 transition">
+          Prochaine : 10k Montmartre
+        </button>
+        <button id="tabRace1" onclick="selectRace(1)" class="py-1.5 px-2 rounded-lg text-xs font-medium text-neutral-500 transition">
+          Majeur : Semi de Paris
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <div id="raceTitle" class="text-base font-semibold text-neutral-100">10k de Montmartre</div>
+          <div id="raceSub" class="text-xs text-neutral-400">Dim. 24 Janvier 2027 • Relance & D+</div>
+        </div>
+        <div class="min-subcard px-3 py-1.5 text-right">
+          <div class="text-xs text-neutral-500">CIBLE</div>
+          <div id="racePace" class="text-xs font-semibold text-[#D97757] tabular-nums">~4'05"/km</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2 text-center tabular-nums">
+        <div class="min-subcard py-2.5">
+          <div id="cdDays" class="text-xl font-semibold text-neutral-100">84</div>
+          <div class="text-xs text-neutral-500">JOURS</div>
+        </div>
+        <div class="min-subcard py-2.5">
+          <div id="cdHours" class="text-xl font-semibold text-neutral-100">10</div>
+          <div class="text-xs text-neutral-500">HEURES</div>
+        </div>
+        <div class="min-subcard py-2.5">
+          <div id="cdMinutes" class="text-xl font-semibold text-neutral-100">39</div>
+          <div class="text-xs text-neutral-500">MIN</div>
+        </div>
+        <div class="min-subcard py-2.5">
+          <div id="cdSeconds" class="text-xl font-semibold text-[#D97757]">12</div>
+          <div class="text-xs text-neutral-500">SEC</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. LA PROCHAINE SÉANCE -->
+    <div class="min-card p-4">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="text-xs font-medium text-neutral-500">PROCHAINE SÉANCE • PHASE 2 (DÉVELOPPEMENT)</div>
+          <div id="nextSessionDate" class="text-xs font-medium text-[#60A5FA] mt-0.5">Demain • Dimanche 1 Nov • Quais de Saône / Tête d'Or</div>
+        </div>
+        <span id="nextSessionPhase" class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#181B22] border border-[#232730] text-neutral-300">
+          Sortie Longue Z2
+        </span>
+      </div>
+
+      <div id="nextSessionTitle" class="text-base font-semibold text-neutral-100 mb-1">
+        Sortie Longue Zone 2 (1h15 à 1h40) + Test Ravito
+      </div>
+      <p id="nextSessionDesc" class="text-xs text-neutral-400 leading-relaxed mb-3">
+        Strictement en Zone 2 Garmin (139–154 bpm, FC moy. cible 150 bpm). Entraînement digestif : 2 à 3 gorgées d'eau toutes les 20–25 min + apport glucidique (gel/pâte de fruit) vers 45–50 min (10e km).
+      </p>
+
+      <div class="grid grid-cols-3 gap-2 mb-3 tabular-nums">
+        <div class="min-subcard p-2.5">
+          <div class="text-xs text-neutral-500">DURÉE CIBLE</div>
+          <div id="nextSessionDist" class="text-sm font-semibold text-neutral-100 mt-0.5">1h15 – 1h40</div>
+        </div>
+        <div class="min-subcard p-2.5">
+          <div class="text-xs text-neutral-500">ZONE CARDIO</div>
+          <div id="nextSessionPace" class="text-sm font-semibold text-[#D97757] mt-0.5">139–154 bpm</div>
+        </div>
+        <div class="min-subcard p-2.5">
+          <div class="text-xs text-neutral-500">ALLURE EF RÉF.</div>
+          <div id="nextSessionHr" class="text-sm font-semibold text-neutral-100 mt-0.5">~6'30"/km</div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2.5 border-t border-[#1B1E26] text-xs text-neutral-400">
+        <span>Note Doc : Mardi 3 nov = Indisponibilité Concert GIMS</span>
+        <span class="text-neutral-300 font-medium">Nike Vomero 18</span>
+      </div>
+    </div>
+
+    <!-- 3. INDICATEUR DE PERFORMANCE & PROGRESSION VERS L'OBJECTIF SUB-1H30 -->
+    <div class="min-card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <div class="text-xs font-medium text-neutral-500">PROGRESSION RUN IN LYON → PARIS 2027</div>
+          <div class="text-base font-semibold text-neutral-100">Trajectoire Sub-1h30 (Semaine 4 / 22)</div>
+        </div>
+        <button onclick="switchPage('phases')" id="convBadge" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#D97757]/15 border border-[#D97757]/40 text-[#D97757] tabular-nums active:scale-95 transition">
+          Phase 2 / 5 →
+        </button>
+      </div>
+
+      <div class="min-subcard p-3 mb-3.5 grid grid-cols-3 divide-x divide-[#232730] text-center tabular-nums">
+        <div>
+          <div class="text-xs text-neutral-500">DÉPART (4 OCT)</div>
+          <div class="text-sm font-semibold text-neutral-300 mt-0.5">1h 37m 38s</div>
+          <div class="text-xs text-neutral-500">4'37"/km</div>
+        </div>
+        <div>
+          <div class="text-xs text-neutral-500">SEUIL 189 BPM</div>
+          <div class="text-sm font-semibold text-[#D97757] mt-0.5">4'25"/km</div>
+          <div class="text-xs text-neutral-500">Cible 4'08"</div>
+        </div>
+        <div>
+          <div class="text-xs text-neutral-500">CIBLE PARIS</div>
+          <div class="text-sm font-semibold text-[#34D399] mt-0.5">&lt; 1h 30m 00s</div>
+          <div class="text-xs text-neutral-500">&lt; 4'15"/km</div>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="text-neutral-400">Seuil Lactique @ 189 bpm (Coros)</span>
+            <span class="text-neutral-300 font-medium tabular-nums">4'25"/km → Cible 4'05"-4'10"</span>
+          </div>
+          <div class="w-full h-1.5 bg-[#0A0B0E] rounded-full overflow-hidden">
+            <div class="h-full bg-[#D97757] rounded-full" style="width: 58%;"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="text-neutral-400">Progression EF Zone 2 (~150 bpm)</span>
+            <span class="text-[#34D399] font-medium tabular-nums">7'15" → 6'37"/km (Cible 5'45")</span>
+          </div>
+          <div class="w-full h-1.5 bg-[#0A0B0E] rounded-full overflow-hidden">
+            <div class="h-full bg-[#34D399] rounded-full" style="width: 68%;"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="text-neutral-400">Volume Hebdo (4 Courses + 3 Basic-Fit)</span>
+            <span class="text-neutral-300 font-medium tabular-nums">~32 km → Cible 50–55 km/sem</span>
+          </div>
+          <div class="w-full h-1.5 bg-[#0A0B0E] rounded-full overflow-hidden">
+            <div class="h-full bg-[#60A5FA] rounded-full" style="width: 62%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. SYNTHÈSE SANTÉ & RÉCUPÉRATION GARMIN FORERUNNER 255 -->
+    <div class="min-card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <div class="text-xs font-medium text-neutral-500">GARMIN FORERUNNER 255 • 31 OCT</div>
+          <div class="text-base font-semibold text-neutral-100">Constantes & Nutrition (66 kg)</div>
+        </div>
+        <span id="healthHrvBadge" class="text-xs text-[#34D399] font-medium tabular-nums">ACWR 1.21 • Optimal</span>
+      </div>
+
+      <div class="flex items-center gap-4 mb-3">
+        <div class="relative w-28 h-28 flex items-center justify-center shrink-0">
+          <svg class="w-28 h-28 -rotate-90" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="48" stroke="#181B22" stroke-width="9" fill="none" />
+            <circle id="ringSteps" cx="60" cy="60" r="48" stroke="#D97757" stroke-width="9"
+              stroke-dasharray="301.6" stroke-dashoffset="36.2" stroke-linecap="round" fill="none" />
+            <circle cx="60" cy="60" r="34" stroke="#181B22" stroke-width="9" fill="none" />
+            <circle id="ringSleep" cx="60" cy="60" r="34" stroke="#60A5FA" stroke-width="9"
+              stroke-dasharray="213.6" stroke-dashoffset="10.0" stroke-linecap="round" fill="none" />
+          </svg>
+          <div class="absolute text-center">
+            <div id="healthBattVal" class="text-sm font-semibold text-neutral-100 tabular-nums">96.8%</div>
+            <div class="text-xs text-neutral-500">SpO2</div>
+          </div>
+        </div>
+
+        <div class="flex-1 space-y-2 tabular-nums">
+          <div class="min-subcard p-2.5 flex justify-between items-center">
+            <span class="text-xs text-neutral-400">Sommeil (31 oct.)</span>
+            <span id="healthSleepVal" class="text-sm font-semibold text-[#60A5FA]">9h 02m <span class="text-xs text-neutral-500">• Garmin</span></span>
+          </div>
+          <div class="min-subcard p-2.5 flex justify-between items-center">
+            <span class="text-xs text-neutral-400">FC au repos</span>
+            <span id="healthRhrVal" class="text-sm font-semibold text-[#34D399]">51 bpm <span class="text-xs text-neutral-500">(-2 bpm)</span></span>
+          </div>
+          <div class="min-subcard p-2.5 flex justify-between items-center">
+            <span class="text-xs text-neutral-400">Charge CTL / ATL</span>
+            <span id="healthStepsVal" class="text-sm font-semibold text-neutral-200">11.6 / 14.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rappel Cibles Nutritionnelles du Doc (66 kg) -->
+      <div class="grid grid-cols-3 gap-1.5 pt-2.5 border-t border-[#1B1E26] text-xs text-center tabular-nums">
+        <div class="bg-[#0A0B0E] p-2 rounded-lg">
+          <span class="text-neutral-500 block">PROTÉINES</span>
+          <strong class="text-neutral-200">105–120 g/j</strong>
+        </div>
+        <div class="bg-[#0A0B0E] p-2 rounded-lg">
+          <span class="text-neutral-500 block">GLUCIDES</span>
+          <strong class="text-[#D97757]">330–460 g/j</strong>
+        </div>
+        <div class="bg-[#0A0B0E] p-2 rounded-lg">
+          <span class="text-neutral-500 block">HYDRATATION</span>
+          <strong class="text-[#60A5FA]">2.0–2.5 L/j</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 2 : PHASES DU MACROCYCLE (22 SEMAINES — 5 PHASES DU GOOGLE DOC)
+       Affiche :
+       1. La phase dans laquelle on se trouve aujourd'hui + progression
+       2. La frise complète des 5 phases (proportions réelles : 3s / 8s / 5s / 4s / 2s)
+       3. Le détail de chacune des 5 phases (statut, dates, objectifs, allures, semaine type & jalon)
+       ========================================================= -->
+  <div id="page-phases" class="space-y-3.5 hidden">
+    <!-- Carte de positionnement actuel dans le Macrocycle -->
+    <div class="min-card p-4 border-[#D97757]/50">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div id="macroCurrentEyebrow" class="text-xs font-semibold text-[#D97757] tracking-wide">
+            PHASE ACTUELLE • SEMAINE 4 / 22 DU PLAN
+          </div>
+          <div id="macroCurrentTitle" class="text-base font-semibold text-neutral-100 mt-0.5">
+            Phase 2 / 5 : Développement & Force
+          </div>
+          <div id="macroCurrentDates" class="text-xs text-[#60A5FA] mt-0.5">
+            26 oct. – 20 déc. 2026 (8 semaines • Semaines 4 à 11)
+          </div>
+        </div>
+        <span id="macroCurrentBadge" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#D97757]/15 border border-[#D97757] text-[#D97757] tabular-nums">
+          Sem. 1 / 8
+        </span>
+      </div>
+
+      <p id="macroCurrentObjective" class="text-xs text-neutral-300 leading-relaxed mb-3">
+        Construction de la « cylindrée » aérobie, hausse progressive du volume global (32 → 45 km/sem) et développement de la force musculaire (côtes Montée St-Barthélémy + pliométrie Basic-Fit).
+      </p>
+
+      <!-- Barre d'avancement dans la Phase Actuelle -->
+      <div class="mb-3">
+        <div class="flex justify-between text-xs mb-1 tabular-nums">
+          <span class="text-neutral-400">Avancement dans la Phase 2</span>
+          <span id="macroPhaseProgressText" class="text-[#D97757] font-semibold">Jour 6 / 56 (11%) • Reste 50 j</span>
+        </div>
+        <div class="w-full h-2 bg-[#0A0B0E] rounded-full overflow-hidden">
+          <div id="macroPhaseProgressBar" class="h-full bg-[#D97757] rounded-full transition-all duration-300" style="width: 11%;"></div>
+        </div>
+      </div>
+
+      <!-- Frise Chronologique Proportionnelle des 5 Phases (22 semaines) -->
+      <div class="min-subcard p-3 mb-3">
+        <div class="flex justify-between items-center text-xs mb-2">
+          <span class="text-neutral-400 font-medium">FRISE MACROCYCLE (5 OCT. 2026 → 7 MARS 2027)</span>
+          <span id="macroTotalProgressText" class="text-[#34D399] font-semibold tabular-nums">18% du plan (J27/154)</span>
+        </div>
+        <div class="flex gap-1 text-center tabular-nums" id="macroTimelineBar"></div>
+      </div>
+
+      <!-- Filtres rapides par phase -->
+      <div class="flex flex-wrap gap-1.5" id="phaseFilterButtons"></div>
+    </div>
+
+    <!-- Conteneur des 5 cartes de Phases détaillées -->
+    <div id="phasesListContainer" class="space-y-3.5"></div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 3 : SÉANCES & JOURNAL D'ENTRAÎNEMENT RÉEL
+       ========================================================= -->
+  <div id="page-training" class="space-y-3.5 hidden">
+    <!-- Semaine type Phase 2 (Développement & Force : 26 oct - 20 déc) -->
+    <div class="min-card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <div class="text-xs font-medium text-neutral-500">PHASE 2 : DÉVELOPPEMENT & FORCE (26 OCT – 20 DÉC)</div>
+          <div class="text-base font-semibold text-neutral-100">Structure Hebdo (4 Runs + 3 Basic-Fit)</div>
+        </div>
+      </div>
+
+      <div class="space-y-2.5">
+        <div class="min-subcard p-3">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-[#D97757] font-medium">Mardi (Attention : 3 Nov = Concert GIMS)</span>
+            <span class="text-neutral-400">Force / VMA</span>
+          </div>
+          <div class="text-sm font-semibold text-neutral-100 mb-1">Côtes Montée St-Barthélémy (Lyon 5) ou 30"/30"</div>
+          <p class="text-xs text-neutral-400">Répétitions de 45s d'effort en côte pour développer la puissance de foulée et préparer Montmartre. Chaussure : Saucony Speed 5.</p>
+        </div>
+
+        <div class="min-subcard p-3">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-[#60A5FA] font-medium">Jeudi • Quais de Saône / Tête d'Or</span>
+            <span class="text-neutral-400">Zone 2 Garmin</span>
+          </div>
+          <div class="text-sm font-semibold text-neutral-100 mb-1">Footing 50–60 min EF (&lt; 154 bpm) + Lignes droites</div>
+          <p class="text-xs text-neutral-400">FC moyenne cible ~150 bpm + 5 à 6 accélérations progressives de 80m. Chaussure : Nike Vomero 18.</p>
+        </div>
+
+        <div class="min-subcard p-3">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-[#D97757] font-medium">Samedi • Séance Clé Seuil</span>
+            <span class="text-neutral-400">Seuil 189 bpm</span>
+          </div>
+          <div class="text-sm font-semibold text-neutral-100 mb-1">Seuil Lactique : 4 × 1500m @ 4'25"/km</div>
+          <p class="text-xs text-neutral-400">Contrôle au brassard Coros (repousser progressivement le seuil de 4'25" vers 4'08"/km). Chaussure : Saucony Speed 5.</p>
+        </div>
+
+        <div class="min-subcard p-3">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-[#34D399] font-medium">Routine Basic-Fit (3× / semaine)</span>
+            <span class="text-neutral-400">Renforcement</span>
+          </div>
+          <div class="text-xs text-neutral-300 space-y-1">
+            <div>• <strong>PULL</strong> : Tirage vertical (41–45kg), Seated Row (20kg), Curl (18kg), Avant-bras.</div>
+            <div>• <strong>LEGS & Prévention</strong> : Box Jumps, Fentes Bulgares (20kg), RDL (20kg), Walk Toes Up (9kg) & Mollets lourds (20kg).</div>
+            <div>• <strong>PUSH</strong> : Seated Dip (50kg), Pec Fly (59kg), Shoulder Press, Triceps poulie (27kg).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historique réel extrait du Google Doc "Journal d'entraînement" + Garmin -->
+    <div class="min-card p-4">
+      <div class="text-xs font-medium text-neutral-500">HISTORIQUE SYNCHRONISÉ (GARMIN × GOOGLE DOC)</div>
+      <div class="text-base font-semibold text-neutral-100 mb-3">Dernières Séances du Journal</div>
+
+      <div class="space-y-3">
+        <!-- 28 Oct -->
+        <div class="min-subcard p-3">
+          <div class="flex justify-between text-xs text-neutral-400 mb-1">
+            <span>28 Oct. 2026 • Phase 2</span>
+            <span class="text-[#34D399] font-medium">TE Aérobie 3.0 / Anaérobie 2.2</span>
+          </div>
+          <div class="text-sm font-semibold text-neutral-100 mb-2">Renfo — LEGS & Pliométrie (Basic-Fit)</div>
+          <div class="grid grid-cols-3 gap-2 text-xs tabular-nums pb-2 mb-2 border-b border-[#232730]">
+            <div><span class="text-neutral-500 block">DURÉE</span><strong>48:12</strong></div>
+            <div><span class="text-neutral-500 block">FC MOY</span><strong>141 bpm</strong></div>
+            <div><span class="text-neutral-500 block">FC MAX</span><strong class="text-[#D97757]">183 bpm</strong></div>
+          </div>
+          <p class="text-xs text-neutral-400 italic mb-2">
+            « Pliométrie : Box Jumps (4×5 à 51/61cm) et Fentes sautées (3×8). Force : Fentes Bulgares (4×10 @ 20kg), RDL (3×10 @ 20kg). Prévention : Walk Toes Up (9kg) et Calf Raise (20kg). »
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="px-2 py-0.5 rounded text-xs bg-[#0A0B0E] text-neutral-300 border border-[#232730]">#Explosivité Plio</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-[#0A0B0E] text-neutral-300 border border-[#232730]">#Prévention Mollets</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-[#0A0B0E] text-neutral-300 border border-[#232730]">#Force Unilatérale</span>
+          </div>
+        </div>
+
+        <!-- 27 Oct -->
+        <div class="min-subcard p-3">
+          <div class="flex justify-between text-xs text-neutral-400 mb-1">
+            <span>27 Oct. 2026 • Phase 2 (Garmin i204127046)</span>
+            <span class="text-[#D97757] font-medium">TE Aérobie 4.6 / Anaérobie 3.3</span>
+          </div>
+          <div class="text-sm font-semibold text-neutral-100 mb-2">Côtes (Montée St-Barthélémy) : 25' EF + 2×8×45s</div>
+          <div class="grid grid-cols-4 gap-2 text-xs tabular-nums pb-2 mb-2 border-b border-[#232730]">
+            <div><span class="text-neutral-500 block">TOTAL GPS</span><strong>11.06 km</strong></div>
+            <div><span class="text-neutral-500 block">DURÉE</span><strong>1h 09m 45s</strong></div>
+            <div><span class="text-neutral-500 block">ALLURE</span><strong>6'19"/km</strong></div>
+            <div><span class="text-neutral-500 block">FC MOY/MAX</span><strong class="text-[#D97757]">161 / 192</strong></div>
+          </div>
+          <p class="text-xs text-neutral-400 italic mb-2">
+            « Séance Côte (25min EF + 2×8×45s + 10min récup) par 21°C. Impact aérobie de 4.6 (Tempo) et anaérobie de 3.3. Cadence moyenne à 162 spm. »
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="px-2 py-0.5 rounded text-xs bg-[#0A0B0E] text-neutral-300 border border-[#232730]">#Puissance Côtes</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-[#0A0B0E] text-neutral-300 border border-[#232730]">#Impact Tempo 4.6</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-[#0A0B0E] text-neutral-300 border border-[#232730]">#Prépa Montmartre</span>
+          </div>
+        </div>
+
+        <!-- 19 Oct -->
+        <div class="min-subcard p-3">
+          <div class="flex justify-between text-xs text-neutral-400 mb-1">
+            <span>19 Oct. 2026 • Phase 1 (Garmin i204126993)</span>
+            <span class="text-[#60A5FA] font-medium">Base TE 3.2</span>
+          </div>
+          <div class="text-sm font-semibold text-neutral-100 mb-2">Lyon Quais de Saône — EF 45 min</div>
+          <div class="grid grid-cols-4 gap-2 text-xs tabular-nums pb-2 mb-2 border-b border-[#232730]">
+            <div><span class="text-neutral-500 block">DIST.</span><strong>7.31 km</strong></div>
+            <div><span class="text-neutral-500 block">DURÉE</span><strong>48:22</strong></div>
+            <div><span class="text-neutral-500 block">ALLURE</span><strong class="text-[#34D399]">6'37"/km</strong></div>
+            <div><span class="text-neutral-500 block">FC MOY/MAX</span><strong>152 / 161</strong></div>
+          </div>
+          <p class="text-xs text-neutral-400 italic mb-2">
+            « Sortie EF sous la pluie (11°C). Progression notable de l'allure (6'37/km contre 7'01/km le 13 oct. et 7'15/km le 11 oct.) pour un coût cardiaque identique en Zone 2 (139–154 bpm). »
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="px-2 py-0.5 rounded text-xs bg-[#0A0B0E] text-neutral-300 border border-[#232730]">#Progression EF -24s</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-[#0A0B0E] text-neutral-300 border border-[#232730]">#Zone 2 Validée</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-[#0A0B0E] text-neutral-300 border border-[#232730]">#Base Aérobie</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 3 : CHAUSSURES (DONNÉES RÉELLES DU DOC PROJET SUB-1H30)
+       - Nike Vomero 18 : 387 km (à remplacer entre mi-nov 2026 et début janv 2027)
+       - Saucony Endorphin Speed 5 : 170 km (VMA, Seuil & Courses Montmartre / Paris)
+       ========================================================= -->
+  <div id="page-shoes" class="space-y-3.5 hidden">
+    <div class="min-card p-4 flex items-center justify-between">
+      <div>
+        <div class="text-xs font-medium text-neutral-500">SECTION 4 DU DOC « PROJET SUB-1H30 »</div>
+        <div class="text-base font-semibold text-neutral-100">Rotation & Fin de Vie Estimée</div>
+      </div>
+      <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#181B22] border border-[#232730] text-neutral-300 tabular-nums">
+        557 km cumulés
+      </span>
+    </div>
+
+    <div id="shoesContainer" class="space-y-3.5"></div>
+  </div>
+
+  <!-- =========================================================
+       PAGE 4 : STRATÉGIE COURSE & RAVITAILLEMENT (DOC SECTION 3 & 5)
+       ========================================================= -->
+  <div id="page-strategy" class="space-y-3.5 hidden">
+    <div class="min-card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <div class="text-xs font-medium text-neutral-500">SEMI DE PARIS (7 MARS 2027) • &lt; 4'15"/KM</div>
+          <div class="text-base font-semibold text-neutral-100">Stratégie Allure & Ravitaillement</div>
+        </div>
+        <div class="min-subcard px-2.5 py-1 text-right">
+          <div class="text-xs text-neutral-500">ARRIVÉE</div>
+          <div id="stratFinish" class="text-xs font-semibold text-[#D97757] tabular-nums">1h 29m 24s</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-[#0A0B0E] mb-3">
+        <button id="btnStrat0" onclick="selectStrategy(0)" class="py-1.5 px-2 rounded-lg text-xs font-medium bg-[#181B22] text-neutral-100">
+          Ajusté D+
+        </button>
+        <button id="btnStrat1" onclick="selectStrategy(1)" class="py-1.5 px-2 rounded-lg text-xs font-medium text-neutral-500">
+          Negative Split
+        </button>
+        <button id="btnStrat2" onclick="selectStrategy(2)" class="py-1.5 px-2 rounded-lg text-xs font-medium text-neutral-500">
+          Métronome
+        </button>
+      </div>
+
+      <p id="stratDesc" class="text-xs text-neutral-400 mb-3"></p>
+      <div id="stratCheckpoints" class="space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- BARRE DE NAVIGATION INFÉRIEURE FIXE (5 PAGES) -->
+  <div class="fixed bottom-0 left-0 right-0 bg-[#12141A]/95 backdrop-blur border-t border-[#232730] px-2 pt-2 pb-5 grid grid-cols-5 gap-1 max-w-md mx-auto z-30">
+    <button onclick="switchPage('home')" id="tab-home" class="flex flex-col items-center py-1">
+      <span id="ind-home" class="w-5 h-0.5 rounded-full bg-[#D97757] mb-1.5"></span>
+      <span id="lbl-home" class="text-xs font-semibold text-neutral-100">Accueil</span>
+    </button>
+    <button onclick="switchPage('phases')" id="tab-phases" class="flex flex-col items-center py-1">
+      <span id="ind-phases" class="w-5 h-0.5 rounded-full bg-transparent mb-1.5"></span>
+      <span id="lbl-phases" class="text-xs font-medium text-neutral-500">Phases</span>
+    </button>
+    <button onclick="switchPage('training')" id="tab-training" class="flex flex-col items-center py-1">
+      <span id="ind-training" class="w-5 h-0.5 rounded-full bg-transparent mb-1.5"></span>
+      <span id="lbl-training" class="text-xs font-medium text-neutral-500">Séances</span>
+    </button>
+    <button onclick="switchPage('shoes')" id="tab-shoes" class="flex flex-col items-center py-1">
+      <span id="ind-shoes" class="w-5 h-0.5 rounded-full bg-transparent mb-1.5"></span>
+      <span id="lbl-shoes" class="text-xs font-medium text-neutral-500">Chaussures</span>
+    </button>
+    <button onclick="switchPage('strategy')" id="tab-strategy" class="flex flex-col items-center py-1">
+      <span id="ind-strategy" class="w-5 h-0.5 rounded-full bg-transparent mb-1.5"></span>
+      <span id="lbl-strategy" class="text-xs font-medium text-neutral-500">Course</span>
+    </button>
+  </div>
+
+  <script>
+    const LIVE_CONFIG = {
+      athleteId: 'i778652',
+      apiKey: '5fd9rx3qxxyk2qv7nvlbt20oc',
+      sub130DocId: '10KqDb6Kt6Il5QgDdxofpIre3hw-WdLttjfHvcLOfXus',
+      journalDocId: '1Bhpmuy-BPofD08MUbSry2O7rMSOOU3az-MPsHd-VzYM'
+    };
+
+    // VRAIES DATES DE LUBIN EXTRAITES DU GOOGLE DOC "PROJET SUB-1H30"
+    const RACES = [
+      {
+        title: '10k de Montmartre',
+        sub: 'Dim. 24 Janvier 2027 • Relance musculaire & D+',
+        pace: '~4\'05"/km',
+        dateIso: '2027-01-24T09:00:00+01:00'
+      },
+      {
+        title: 'Semi-Marathon de Paris',
+        sub: 'Dim. 7 Mars 2027 • Objectif Principal Sub-1h30',
+        pace: '< 4\'15"/km',
+        dateIso: '2027-03-07T08:00:00+01:00'
+      }
+    ];
+    let activeRaceIdx = 0;
+
+    // VRAIES CHAUSSURES DE LUBIN EXTRAITES DU GOOGLE DOC "PROJET SUB-1H30"
+    const SHOES = [
+      {
+        brand: 'NIKE',
+        model: 'Vomero 18',
+        category: 'Footings Récup & Sorties Longues EF',
+        purchaseDate: '387 km réels inscrits dans Projet Sub-1h30',
+        currentKm: 387,
+        maxKm: 620, // Seuil d'amorti protecteur (remplacement prévu mi-nov 2026 à début janv 2027)
+        weeklyKm: 28,
+        utility: 'Dédiées aux footings de récupération et sorties longues (EF Zone 2 < 154 bpm). L\'amorti protège des chocs sur les Quais de Saône.',
+        sessions: 'Jeudi EF (50-60 min) & Dimanche Sortie Longue (1h15-1h40)',
+        docWindowNote: 'Note Google Doc : « À remplacer entre mi-novembre 2026 et début janvier 2027 »',
+        weightDrop: '278g • Drop 10mm',
+        hrAtPace: '152 bpm (EF)',
+        gct: 'Amorti Max'
+      },
+      {
+        brand: 'SAUCONY',
+        model: 'Endorphin Speed 5',
+        category: 'VMA, Seuil & Compétitions Officielles',
+        purchaseDate: '170 km réels inscrits dans Projet Sub-1h30',
+        currentKm: 170,
+        maxKm: 600,
+        weeklyKm: 15,
+        utility: 'Dédiées exclusivement aux séances de VMA, Côtes, Seuil lactique (4\'25" → 4\'15"/km) et aux courses officielles (10k Montmartre & Semi de Paris).',
+        sessions: 'Mardi (VMA/Côtes), Samedi (Seuil), Montmartre & Semi de Paris',
+        docWindowNote: 'Plaque Nylon ailée + Mousse PWRRUN PB : réserve de dynamisme intacte (72% restants)',
+        weightDrop: '204g • Drop 8mm',
+        hrAtPace: '189 bpm (Seuil)',
+        gct: 'Plaque Nylon'
+      },
+      {
+        brand: 'HOKA',
+        model: 'Speedgoat 6',
+        category: 'Trail & Sentiers Vallonnés',
+        purchaseDate: 'Rotation complémentaire Nature / D+',
+        currentKm: 210,
+        maxKm: 650,
+        weeklyKm: 8,
+        utility: 'Accroche Vibram Megagrip pour les sorties nature glissantes et le renforcement cheville/mollets hors bitume.',
+        sessions: 'Sentiers vallonnés & sorties nature hivernales',
+        docWindowNote: 'Crampons 5mm • Protection tendineuse sur sol souple',
+        weightDrop: '278g • Drop 5mm',
+        hrAtPace: 'Zone 2 / Côtes',
+        gct: 'Vibram 5mm'
+      }
+    ];
+
+    const STRATEGIES = [
+      {
+        finish: '1h 29m 24s',
+        desc: 'Adapte l\'allure aux faux-plats du Bois de Vincennes + protocole Ravito du Doc (2-3 gorgées d\'eau toutes les 20-25 min, glucides vers 45-50 min).',
+        splits: [
+          { seg: 'Km 0 → 5 (St-Germain / Quais)', elev: '-6m D-', pace: '4\'15"/km', time: '00:21:15', hr: '176 bpm', nut: '2-3 gorgées d\'eau (21 min)' },
+          { seg: 'Km 5 → 10 (Bastille → Daumesnil)', elev: '+14m D+', pace: '4\'15"/km', time: '00:42:30', hr: '183 bpm', nut: 'Gel / Pâte de fruit au 10e km (~43 min) + Eau' },
+          { seg: 'Km 10 → 15 (Gravelle / Vincennes)', elev: '+32m D+', pace: '4\'18"/km', time: '01:04:00', hr: '188 bpm', nut: '2e apport glucidique + 2-3 gorgées d\'eau' },
+          { seg: 'Km 15 → 21.1 (Château → Bastille)', elev: '-28m D-', pace: '4\'10"/km', time: '01:29:24', hr: '191 bpm', nut: 'Relance finale sur le plat' }
+        ]
+      },
+      {
+        finish: '1h 29m 31s',
+        desc: 'Départ prudent à 4\'18"/km puis accélération progressive jusqu\'à 4\'11"/km sur les 6 derniers kilomètres.',
+        splits: [
+          { seg: 'Km 0 → 5', elev: '-6m D-', pace: '4\'18"/km', time: '00:21:30', hr: '174 bpm', nut: '2-3 gorgées d\'eau (21 min)' },
+          { seg: 'Km 5 → 10', elev: '+14m D+', pace: '4\'16"/km', time: '00:42:50', hr: '181 bpm', nut: 'Gel / Pâte de fruit au 10e km (~43 min)' },
+          { seg: 'Km 10 → 15', elev: '+32m D+', pace: '4\'13"/km', time: '01:03:55', hr: '187 bpm', nut: 'Eau + Glucides (1h04)' },
+          { seg: 'Km 15 → 21.1', elev: '-28m D-', pace: '4\'11"/km', time: '01:29:31', hr: '191 bpm', nut: '' }
+        ]
+      },
+      {
+        finish: '1h 29m 19s',
+        desc: 'Allure constante à 4\'14"/km du premier au dernier kilomètre.',
+        splits: [
+          { seg: 'Km 0 → 5', elev: '-6m D-', pace: '4\'14"/km', time: '00:21:10', hr: '177 bpm', nut: '2-3 gorgées d\'eau (21 min)' },
+          { seg: 'Km 5 → 10', elev: '+14m D+', pace: '4\'14"/km', time: '00:42:20', hr: '183 bpm', nut: 'Gel / Pâte de fruit au 10e km (~42 min)' },
+          { seg: 'Km 10 → 15', elev: '+32m D+', pace: '4\'14"/km', time: '01:03:30', hr: '188 bpm', nut: 'Eau + Glucides (1h03)' },
+          { seg: 'Km 15 → 21.1', elev: '-28m D-', pace: '4\'14"/km', time: '01:29:19', hr: '191 bpm', nut: '' }
+        ]
+      }
+    ];
+
+    function toggleSyncPanel() {
+      document.getElementById('syncDiagnosticDrawer').classList.toggle('hidden');
+    }
+
+    async function runLiveSync() {
+      const auth = 'Basic ' + btoa(`API_KEY:${LIVE_CONFIG.apiKey}`);
+      const base = `https://intervals.icu/api/v1/athlete/${LIVE_CONFIG.athleteId}`;
+      try {
+        const [wellRes, actRes] = await Promise.all([
+          fetch(`${base}/wellness?oldest=2026-10-01&newest=2026-11-05`, { headers: { Authorization: auth } }),
+          fetch(`${base}/activities?oldest=2026-09-01&newest=2026-11-05`, { headers: { Authorization: auth } })
+        ]);
+        if (wellRes.ok) {
+          const well = await wellRes.json();
+          const validW = well.filter((w) => w.restingHR || w.sleepSecs);
+          if (validW.length > 0) {
+            const latest = validW[validW.length - 1];
+            if (latest.sleepSecs) {
+              const h = Math.floor(latest.sleepSecs / 3600);
+              const m = Math.floor((latest.sleepSecs % 3600) / 60);
+              document.getElementById('healthSleepVal').innerHTML = `${h}h ${String(m).padStart(2, '0')}m <span class="text-xs text-neutral-500">• Garmin</span>`;
+            }
+            if (latest.restingHR) {
+              document.getElementById('healthRhrVal').innerHTML = `${latest.restingHR} bpm <span class="text-xs text-neutral-500">(${latest.id.slice(5)})</span>`;
+            }
+            if (latest.spO2) {
+              document.getElementById('healthBattVal').textContent = `${latest.spO2}%`;
+            }
+          }
+        }
+        if (actRes.ok) {
+          const acts = await actRes.json();
+          document.getElementById('diagIntervals').textContent = `✓ ${acts.length} activités synchronisées`;
+        }
+      } catch (e) {
+        console.warn('Live Sync:', e);
+      }
+    }
+
+    function switchPage(pageId) {
+      const titles = {
+        home: { eyebrow: 'LUBIN QUEYROI • 66.0 KG • FR 255', title: 'Sub-1h30 • Journal' },
+        phases: { eyebrow: 'MACROCYCLE 22 SEMAINES (DOC SECTION 5)', title: 'Les 5 Phases du Plan' },
+        training: { eyebrow: 'PHASE 2 : DÉVELOPPEMENT & FORCE', title: 'Séances & Journal' },
+        shoes: { eyebrow: 'ROTATION MATÉRIEL (DOC SECTION 4)', title: 'Garage à Chaussures' },
+        strategy: { eyebrow: 'OBJECTIF 7 MARS 2027', title: 'Stratégie Semi de Paris' }
+      };
+
+      document.getElementById('pageEyebrow').textContent = titles[pageId].eyebrow;
+      document.getElementById('pageTitle').textContent = titles[pageId].title;
+
+      ['home', 'phases', 'training', 'shoes', 'strategy'].forEach((id) => {
+        const el = document.getElementById('page-' + id);
+        const ind = document.getElementById('ind-' + id);
+        const lbl = document.getElementById('lbl-' + id);
+        if (id === pageId) {
+          el.classList.remove('hidden');
+          ind.className = 'w-5 h-0.5 rounded-full bg-[#D97757] mb-1.5';
+          lbl.className = 'text-xs font-semibold text-neutral-100';
+        } else {
+          el.classList.add('hidden');
+          ind.className = 'w-5 h-0.5 rounded-full bg-transparent mb-1.5';
+          lbl.className = 'text-xs font-medium text-neutral-500';
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // LES 5 PHASES DU MACROCYCLE (22 SEMAINES) EXTRAITES DE LA SECTION 5 DU DOC "PROJET SUB-1H30"
+    const PHASES = [
+      {
+        id: 'p1',
+        num: 1,
+        name: 'Régénération & Reprise',
+        dates: '5 oct. – 25 oct. 2026',
+        startIso: '2026-10-05T00:00:00',
+        endIso: '2026-10-25T23:59:59',
+        weeks: 3,
+        weekSpan: 'Semaines 1 à 3',
+        volume: '15 → 28 km/sem',
+        paces: '100% Zone 2 Garmin (139–154 bpm) • Aucun effort lactique',
+        objective: 'Éliminer la fatigue du semi de début octobre (Run in Lyon : 1h37m38s le 4 oct.) et assimiler le don de sang du 8 octobre.',
+        sessions: [
+          { day: 'Semaine 1', focus: 'Repos post-don & Marche', detail: 'Repos complet post-don du sang (VFC 85 ms, SpO2 100%), marche, 10×2\'/1\' lent + EF 40 min Marsaz (7\'15"/km @ 144 bpm).', shoe: 'Nike Vomero 18' },
+          { day: 'Semaines 2–3', focus: 'Réintroduction 4 Runs Zone 2', detail: 'EF 45 min Quais de Saône : progression rapide de 7\'01"/km (13 oct.) à 6\'37"/km (19 oct.) à FC identique (~152 bpm).', shoe: 'Nike Vomero 18' },
+          { day: 'Renfo 3×/sem', focus: 'Reprise PPL & Prévention Tendons', detail: 'PULL (Lat Pulldown 41–45kg), LEGS (Walk Toes Up 8kg, Mollets 20kg), PUSH (Seated Dip 50kg, Pec Fly 59kg).' }
+        ],
+        milestone: '✓ Phase 1 terminée (10 séances dans le Journal) : Don du sang assimilé et gain de +38"/km en EF Zone 2.'
+      },
+      {
+        id: 'p2',
+        num: 2,
+        name: 'Développement & Force',
+        dates: '26 oct. – 20 déc. 2026',
+        startIso: '2026-10-26T00:00:00',
+        endIso: '2026-12-20T23:59:59',
+        weeks: 8,
+        weekSpan: 'Semaines 4 à 11',
+        volume: '32 → 45 km/sem (+ 3 Basic-Fit)',
+        paces: 'EF Z2 (139–154 bpm) • Seuil 4\'25"→4\'18"/km (189 bpm)',
+        objective: 'Construction de la « cylindrée » aérobie, hausse du volume global et développement de la force musculaire (côtes + pliométrie).',
+        sessions: [
+          { day: 'Mardi', focus: 'VMA Courte ou Côtes', detail: '30"/30" ou Côtes Montée St-Barthélémy (2×8×45s, validé le 27 oct. TE 4.6). Attention : 3 nov. = Concert GIMS.', shoe: 'Saucony Endorphin Speed 5' },
+          { day: 'Jeudi', focus: 'Footing Zone 2 + Lignes Droites', detail: '50–60 min en Zone 2 indiquée par Garmin (139–154 bpm, moy. cible 150 bpm) + 5 à 6 lignes droites.', shoe: 'Nike Vomero 18' },
+          { day: 'Samedi', focus: 'Seuil Lactique (189 bpm Coros)', detail: 'Ex: 4 × 1500m à 4\'25"/km (progressant vers 4\'18"/km d\'ici fin décembre).', shoe: 'Saucony Endorphin Speed 5' },
+          { day: 'Dimanche', focus: 'Sortie Longue Z2 + Test Ravito', detail: '1h15 à 1h40 strictement en Zone 2 Garmin + eau toutes les 20–25 min + glucides vers 45–50 min (10e km).', shoe: 'Nike Vomero 18' },
+          { day: '3× / sem.', focus: 'Basic-Fit (PULL / LEGS Plio / PUSH)', detail: 'Box Jumps (51/61cm), Fentes Bulgares (20kg), RDL (20kg), Walk Toes Up (9kg) & Calf Raise (20kg).' }
+        ],
+        milestone: '● PHASE ACTUELLE : 2 séances déjà validées (Côtes St-Barthélémy + LEGS Plio). Remplacement Nike Vomero 18 prévu entre mi-nov. et début janv.'
+      },
+      {
+        id: 'p3',
+        num: 3,
+        name: 'Spécifique 10k Montmartre',
+        dates: '21 déc. 2026 – 24 janv. 2027',
+        startIso: '2026-12-21T00:00:00',
+        endIso: '2027-01-24T23:59:59',
+        weeks: 5,
+        weekSpan: 'Semaines 12 à 16',
+        volume: '42 → 48 km/sem',
+        paces: 'AS10 ~4\'05"/km • Seuil 4\'15"/km • EF < 150 bpm',
+        objective: 'Travailler le relâchement à haute vitesse et se préparer au profil accidenté et aux relances de la course.',
+        sessions: [
+          { day: 'Mardi', focus: 'Intervalles Longs AS10', detail: 'Ex: 6 × 1000m vers 4\'05"/km pour développer la VO2max et le relâchement à haute vitesse.', shoe: 'Saucony Endorphin Speed 5' },
+          { day: 'Jeudi', focus: 'Footing Assimilation', detail: '50 min strictement < 150 bpm.', shoe: 'Nike Vomero 18 (Nouvelle paire)' },
+          { day: 'Samedi', focus: 'Alternance Côtes / Seuil', detail: 'Rappels de côtes ou Seuil long (ex: 3 × 2000m à 4\'15"/km).', shoe: 'Saucony Endorphin Speed 5' },
+          { day: 'Dimanche', focus: 'Sortie Longue Raccourcie', detail: '1h15 à 1h20 en Zone 2 pour préserver l\'énergie et la fraîcheur.', shoe: 'Nike Vomero 18 (Nouvelle paire)' }
+        ],
+        milestone: '🏁 Dimanche 24 janvier 2027 : Course intermédiaire — 10k de Montmartre (relance musculaire & D+).'
+      },
+      {
+        id: 'p4',
+        num: 4,
+        name: 'Spécifique Semi de Paris',
+        dates: '25 janv. – 21 fév. 2027',
+        startIso: '2027-01-25T00:00:00',
+        endIso: '2027-02-21T23:59:59',
+        weeks: 4,
+        weekSpan: 'Semaines 17 à 20',
+        volume: '50 – 55 km/sem (Pic du cycle)',
+        paces: 'AS21 4\'12"–4\'15"/km • Seuil 4\'05"–4\'10"/km • EF 5\'45"–6\'00"',
+        objective: 'Mémorisation mécanique et cardiaque de l\'allure cible Sub-1h30 (4\'15"/km) sur la fatigue.',
+        sessions: [
+          { day: 'Mardi', focus: 'Rappels VMA Courte', detail: 'Ex: 10 × 400m à 4\'00"/km.', shoe: 'Saucony Endorphin Speed 5' },
+          { day: 'Jeudi', focus: 'Footing Aérobie 1h00', detail: '1h00 < 150 bpm (allure EF attendue vers 5\'45"–6\'00"/km).', shoe: 'Nike Vomero 18' },
+          { day: 'Samedi', focus: 'Blocs Allure Cible Sub-1h30', detail: 'Ex: 3 × 3000m ou 2 × 4000m calés à 4\'12" – 4\'15"/km.', shoe: 'Saucony Endorphin Speed 5' },
+          { day: 'Dimanche', focus: 'Sortie Longue + Bloc Final', detail: '1h30 à 1h45 incluant un bloc final de 15 min à allure marathon (4\'30"/km) + ravito.', shoe: 'Nike Vomero 18' }
+        ],
+        milestone: '🎯 Cible fin février : Seuil lactique (189 bpm) repoussé à 4\'05"–4\'10"/km et validation du 3×3000m à 4\'13"/km.'
+      },
+      {
+        id: 'p5',
+        num: 5,
+        name: 'Affûtage & Compétition',
+        dates: '22 fév. – 7 mars 2027',
+        startIso: '2027-02-22T00:00:00',
+        endIso: '2027-03-07T23:59:59',
+        weeks: 2,
+        weekSpan: 'Semaines 21 à 22',
+        volume: '-30% (S21) puis -50% (S22)',
+        paces: 'Rappels courts à 4\'15"/km • Surcharge glycogénique',
+        objective: 'Surcompensation et création de fraîcheur nerveuse et musculaire avant le jour J.',
+        sessions: [
+          { day: 'Semaine 21', focus: 'Baisse du volume (-30%)', detail: 'Réduction du kilométrage, arrêt des séances jambes lourdes, courts rappels d\'allure 4\'15"/km.', shoe: 'Saucony Endorphin Speed 5' },
+          { day: 'Semaine 22', focus: 'Affûtage Terminal (-50%)', detail: 'Footings courts d\'activation + lignes droites + recharge glucidique (380–460 g/j).', shoe: 'Saucony Endorphin Speed 5' },
+          { day: 'Dim. 7 Mars', focus: 'SEMI-MARATHON DE PARIS', detail: 'Objectif Sub-1h30 • Allure cible < 4\'15"/km • Arrivée visée : 1h 29m 24s.', shoe: 'Saucony Endorphin Speed 5' }
+        ],
+        milestone: '🏆 Dimanche 7 mars 2027 : Objectif Sub-1h30 au Semi-Marathon de Paris (< 4\'15"/km).'
+      }
+    ];
+
+    let activePhaseFilter = 'all';
+
+    function getPhaseRuntimeInfo(p) {
+      const now = Date.now();
+      const s = new Date(p.startIso).getTime();
+      const e = new Date(p.endIso).getTime();
+      const totalDays = Math.max(1, Math.round((e - s) / 86400000));
+      if (now > e) {
+        return { status: 'completed', pct: 100, elapsedDays: totalDays, totalDays, remDays: 0, curWeekInPhase: p.weeks };
+      }
+      if (now >= s && now <= e) {
+        const elapsedDays = Math.max(1, Math.ceil((now - s) / 86400000));
+        const pct = Math.min(100, Math.max(1, Math.round((elapsedDays / totalDays) * 100)));
+        const remDays = Math.max(0, totalDays - elapsedDays);
+        const curWeekInPhase = Math.min(p.weeks, Math.max(1, Math.ceil(elapsedDays / 7)));
+        return { status: 'current', pct, elapsedDays, totalDays, remDays, curWeekInPhase };
+      }
+      const daysUntilStart = Math.max(1, Math.ceil((s - now) / 86400000));
+      return { status: 'upcoming', pct: 0, elapsedDays: 0, totalDays, remDays: totalDays, daysUntilStart, curWeekInPhase: 0 };
+    }
+
+    function filterPhases(filterId) {
+      activePhaseFilter = filterId;
+      renderPhases();
+    }
+
+    function renderPhases() {
+      const planStart = new Date('2026-10-05T00:00:00').getTime();
+      const planEnd = new Date('2027-03-07T23:59:59').getTime();
+      const now = Date.now();
+      const totalPlanDays = Math.round((planEnd - planStart) / 86400000);
+      const elapsedPlanDays = Math.min(totalPlanDays, Math.max(1, Math.ceil((now - planStart) / 86400000)));
+      const totalPlanPct = Math.min(100, Math.max(1, Math.round((elapsedPlanDays / totalPlanDays) * 100)));
+      const currentPlanWeek = Math.min(22, Math.max(1, Math.ceil(elapsedPlanDays / 7)));
+
+      const enriched = PHASES.map((p) => ({ ...p, rt: getPhaseRuntimeInfo(p) }));
+      const cur = enriched.find((p) => p.rt.status === 'current') || enriched[1];
+
+      // Mise à jour de la bannière de position actuelle
+      document.getElementById('macroCurrentEyebrow').textContent = `PHASE ACTUELLE • SEMAINE ${currentPlanWeek} / 22 DU PLAN`;
+      document.getElementById('macroCurrentTitle').textContent = `Phase ${cur.num} / 5 : ${cur.name}`;
+      document.getElementById('macroCurrentDates').textContent = `${cur.dates} (${cur.weeks} semaines • ${cur.weekSpan})`;
+      document.getElementById('macroCurrentBadge').textContent = `Sem. ${cur.rt.curWeekInPhase} / ${cur.weeks}`;
+      document.getElementById('macroCurrentObjective').textContent = cur.objective;
+      document.getElementById('macroPhaseProgressText').textContent = `Jour ${cur.rt.elapsedDays} / ${cur.rt.totalDays} (${cur.rt.pct}%) • Reste ${cur.rt.remDays} j`;
+      document.getElementById('macroPhaseProgressBar').style.width = `${cur.rt.pct}%`;
+      document.getElementById('macroTotalProgressText').textContent = `${totalPlanPct}% du plan (J${elapsedPlanDays}/${totalPlanDays})`;
+
+      // Frise chronologique proportionnelle aux semaines (3 / 8 / 5 / 4 / 2)
+      document.getElementById('macroTimelineBar').innerHTML = enriched.map((p) => {
+        const isCur = p.rt.status === 'current';
+        const isDone = p.rt.status === 'completed';
+        const bgClass = isCur
+          ? 'bg-[#D97757]/25 border-[#D97757] text-neutral-100'
+          : isDone
+          ? 'bg-[#34D399]/15 border-[#34D399]/60 text-[#34D399]'
+          : 'bg-[#0A0B0E] border-[#232730] text-neutral-500';
+        return `
+          <button onclick="filterPhases('${activePhaseFilter === p.id ? 'all' : p.id}')"
+            style="flex:${p.weeks}"
+            class="py-1.5 px-1 rounded-lg border text-xs transition ${bgClass}">
+            <div class="font-semibold">P${p.num}${isCur ? ' ●' : isDone ? ' ✓' : ''}</div>
+            <div class="text-[10px] opacity-80">${p.weeks}s</div>
+          </button>
+        `;
+      }).join('');
+
+      // Boutons de filtre
+      const filters = [
+        { id: 'all', label: 'Toutes les 5 phases' },
+        ...enriched.map((p) => ({
+          id: p.id,
+          label: `Phase ${p.num}${p.rt.status === 'current' ? ' (Actuelle)' : p.rt.status === 'completed' ? ' ✓' : ''}`
+        }))
+      ];
+      document.getElementById('phaseFilterButtons').innerHTML = filters.map((f) => {
+        const active = activePhaseFilter === f.id;
+        return `
+          <button onclick="filterPhases('${f.id}')"
+            class="px-2.5 py-1 rounded-lg text-xs font-medium border transition ${
+              active
+                ? 'bg-[#181B22] border-[#D97757] text-neutral-100'
+                : 'bg-[#0A0B0E] border-[#232730] text-neutral-400'
+            }">
+            ${f.label}
+          </button>
+        `;
+      }).join('');
+
+      // Liste des cartes de phases
+      const list = activePhaseFilter === 'all' ? enriched : enriched.filter((p) => p.id === activePhaseFilter);
+      document.getElementById('phasesListContainer').innerHTML = list.map((p) => {
+        const isCur = p.rt.status === 'current';
+        const isDone = p.rt.status === 'completed';
+        const badgeStyle = isCur
+          ? 'background:#D9775722; color:#D97757; border:1px solid #D97757;'
+          : isDone
+          ? 'background:#34D3991A; color:#34D399; border:1px solid #34D39966;'
+          : 'background:#181B22; color:#9CA3AF; border:1px solid #232730;';
+        const badgeLabel = isCur
+          ? `● EN COURS • SEM. ${p.rt.curWeekInPhase}/${p.weeks}`
+          : isDone
+          ? '✓ TERMINÉE (100%)'
+          : `À VENIR (DANS ${p.rt.daysUntilStart} J)`;
+        const cardBorder = isCur ? 'border: 1.5px solid #D97757;' : '';
+
+        return `
+          <div class="min-card p-4" style="${cardBorder}">
+            <div class="flex items-start justify-between gap-2 mb-2.5">
+              <div>
+                <div class="text-xs font-semibold text-neutral-500">PHASE ${p.num} / 5 • ${p.weekSpan.toUpperCase()} (${p.weeks} SEM.)</div>
+                <div class="text-base font-semibold text-neutral-100 mt-0.5">${p.name}</div>
+                <div class="text-xs font-medium text-[#60A5FA] mt-0.5">${p.dates}</div>
+              </div>
+              <span class="px-2.5 py-1 rounded-md text-xs font-semibold tabular-nums shrink-0" style="${badgeStyle}">
+                ${badgeLabel}
+              </span>
+            </div>
+
+            ${isCur ? `
+              <div class="mb-3">
+                <div class="flex justify-between text-xs mb-1 tabular-nums">
+                  <span class="text-neutral-400">Progression Phase ${p.num}</span>
+                  <span class="text-[#D97757] font-semibold">Jour ${p.rt.elapsedDays}/${p.rt.totalDays} (${p.rt.pct}%)</span>
+                </div>
+                <div class="w-full h-1.5 bg-[#0A0B0E] rounded-full overflow-hidden">
+                  <div class="h-full bg-[#D97757] rounded-full" style="width:${p.rt.pct}%"></div>
+                </div>
+              </div>
+            ` : ''}
+
+            <div class="min-subcard p-3 mb-2.5">
+              <div class="text-xs font-semibold text-neutral-400 mb-1">OBJECTIF DE LA PHASE</div>
+              <p class="text-xs text-neutral-200 leading-relaxed">${p.objective}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mb-3 text-xs tabular-nums">
+              <div class="bg-[#0A0B0E] p-2.5 rounded-lg border border-[#1B1E26]">
+                <span class="text-neutral-500 block">VOLUME HEBDO</span>
+                <strong class="text-neutral-200">${p.volume}</strong>
+              </div>
+              <div class="bg-[#0A0B0E] p-2.5 rounded-lg border border-[#1B1E26]">
+                <span class="text-neutral-500 block">ALLURES & CARDIO CLÉS</span>
+                <strong class="text-[#D97757]">${p.paces}</strong>
+              </div>
+            </div>
+
+            <div class="text-xs font-semibold text-neutral-400 mb-2">SEMAINE TYPE & CONTENU (DOC PROJET SUB-1H30)</div>
+            <div class="space-y-2 mb-3">
+              ${p.sessions.map((s) => `
+                <div class="min-subcard p-2.5">
+                  <div class="flex justify-between text-xs mb-0.5">
+                    <span class="font-semibold text-[#D97757]">${s.day}</span>
+                    <span class="font-medium text-neutral-200">${s.focus}</span>
+                  </div>
+                  <p class="text-xs text-neutral-400 leading-relaxed">${s.detail}</p>
+                  ${s.shoe ? `<div class="text-xs text-neutral-500 mt-1 italic">Chaussure : ${s.shoe}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="bg-[#0A0B0E] p-2.5 rounded-lg border-l-2 ${isCur ? 'border-[#D97757]' : isDone ? 'border-[#34D399]' : 'border-[#60A5FA]'} text-xs text-neutral-200 font-medium">
+              ${p.milestone}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function computeEndOfLife(shoe) {
+      const remKm = Math.max(0, shoe.maxKm - shoe.currentKm);
+      const weeks = remKm / Math.max(1, shoe.weeklyKm);
+      const days = Math.round(weeks * 7);
+      const ref = new Date('2026-10-31T12:00:00');
+      const death = new Date(ref.getTime() + days * 86400000);
+      const parisDate = new Date('2027-03-07T08:00:00');
+      const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+      return {
+        remKm,
+        weeks: Math.round(weeks * 10) / 10,
+        dateStr: `${death.getDate()} ${months[death.getMonth()]} ${death.getFullYear()}`,
+        survivesParis: death >= parisDate
+      };
+    }
+
+    function getShoeColor(pct) {
+      if (pct >= 80) return { color: '#F87171', label: 'Remplacement proche' };
+      if (pct >= 60) return { color: '#FBBF24', label: 'À surveiller cet hiver' };
+      return { color: '#34D399', label: 'Potentiel optimal' };
+    }
+
+    function renderShoes() {
+      const container = document.getElementById('shoesContainer');
+      container.innerHTML = SHOES.map((s) => {
+        const pct = Math.min(100, Math.round((s.currentKm / s.maxKm) * 100));
+        const theme = getShoeColor(pct);
+        const eol = computeEndOfLife(s);
+        return `
+          <div class="min-card p-4">
+            <div class="flex items-start justify-between mb-2.5">
+              <div>
+                <div class="text-xs font-medium text-neutral-500">${s.brand} • ${s.category}</div>
+                <div class="text-base font-semibold text-neutral-100">${s.model}</div>
+                <div class="text-xs text-neutral-500">${s.purchaseDate}</div>
+              </div>
+              <span class="px-2.5 py-1 rounded-md text-xs font-semibold tabular-nums"
+                style="background:${theme.color}18; color:${theme.color}">
+                ${pct}% • ${theme.label}
+              </span>
+            </div>
+
+            <div class="w-full h-2 bg-[#0A0B0E] rounded-full overflow-hidden mb-1.5">
+              <div class="h-full rounded-full transition-all duration-300"
+                style="width:${pct}%; background:${theme.color}"></div>
+            </div>
+            <div class="flex justify-between text-xs text-neutral-400 tabular-nums mb-3">
+              <span><strong class="text-neutral-200">${s.currentKm} km</strong> parcourus (Seuil amorti : ${s.maxKm} km)</span>
+              <span>${eol.remKm} km restants</span>
+            </div>
+
+            <div class="min-subcard p-3 mb-2.5">
+              <div class="text-xs font-semibold text-[#D97757] mb-1">UTILITÉ & RÔLE DANS LA ROTATION</div>
+              <p class="text-xs text-neutral-200 leading-relaxed mb-1">${s.utility}</p>
+              <div class="text-xs text-neutral-400 mb-1">Séances : <span class="text-neutral-300">${s.sessions}</span></div>
+              <div class="text-xs text-[#60A5FA] italic">${s.docWindowNote}</div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-1.5 mb-2.5 text-xs tabular-nums">
+              <div class="bg-[#0A0B0E] p-2 rounded-lg border border-[#1B1E26]">
+                <span class="text-neutral-500 block">POIDS / DROP</span>
+                <strong class="text-neutral-200">${s.weightDrop}</strong>
+              </div>
+              <div class="bg-[#0A0B0E] p-2 rounded-lg border border-[#1B1E26]">
+                <span class="text-neutral-500 block">CADENCE</span>
+                <strong class="text-neutral-200">~${s.weeklyKm} km/sem</strong>
+              </div>
+              <div class="bg-[#0A0B0E] p-2 rounded-lg border border-[#1B1E26]">
+                <span class="text-neutral-500 block">USAGE CIBLE</span>
+                <strong class="text-[#34D399]">${s.hrAtPace}</strong>
+              </div>
+            </div>
+
+            <div class="min-subcard p-3 flex items-center justify-between">
+              <div>
+                <div class="text-xs font-semibold text-neutral-300">DATE OÙ ELLES « RENDRONT L'ÂME »</div>
+                <div class="text-xs text-neutral-500">Dans ~${eol.weeks} sem. (${s.weeklyKm} km/sem)</div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-semibold tabular-nums" style="color:${theme.color}">${eol.dateStr}</div>
+                <div class="text-xs font-medium ${eol.survivesParis ? 'text-[#34D399]' : 'text-[#F87171]'}">
+                  ${eol.survivesParis ? '✓ Prête pour Montmartre & Paris' : '⚠ À remplacer avant janvier 2027'}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectRace(idx) {
+      activeRaceIdx = idx;
+      const r = RACES[idx];
+      document.getElementById('raceTitle').textContent = r.title;
+      document.getElementById('raceSub').textContent = r.sub;
+      document.getElementById('racePace').textContent = r.pace;
+
+      const t0 = document.getElementById('tabRace0');
+      const t1 = document.getElementById('tabRace1');
+      if (idx === 0) {
+        t0.className = 'py-1.5 px-2 rounded-lg text-xs font-medium bg-[#181B22] text-neutral-100 transition';
+        t1.className = 'py-1.5 px-2 rounded-lg text-xs font-medium text-neutral-500 transition';
+      } else {
+        t1.className = 'py-1.5 px-2 rounded-lg text-xs font-medium bg-[#181B22] text-neutral-100 transition';
+        t0.className = 'py-1.5 px-2 rounded-lg text-xs font-medium text-neutral-500 transition';
+      }
+      updateCountdown();
+    }
+
+    function updateCountdown() {
+      const target = new Date(RACES[activeRaceIdx].dateIso).getTime();
+      const now = Date.now();
+      const diff = Math.max(0, Math.floor((target - now) / 1000));
+      const days = Math.floor(diff / 86400);
+      const hours = Math.floor((diff % 86400) / 3600);
+      const mins = Math.floor((diff % 3600) / 60);
+      const secs = diff % 60;
+
+      document.getElementById('cdDays').textContent = String(days).padStart(2, '0');
+      document.getElementById('cdHours').textContent = String(hours).padStart(2, '0');
+      document.getElementById('cdMinutes').textContent = String(mins).padStart(2, '0');
+      document.getElementById('cdSeconds').textContent = String(secs).padStart(2, '0');
+    }
+
+    function selectStrategy(idx) {
+      const st = STRATEGIES[idx];
+      document.getElementById('stratFinish').textContent = st.finish;
+      document.getElementById('stratDesc').textContent = st.desc;
+      [0, 1, 2].forEach((i) => {
+        const b = document.getElementById('btnStrat' + i);
+        b.className = i === idx
+          ? 'py-1.5 px-2 rounded-lg text-xs font-medium bg-[#181B22] text-neutral-100'
+          : 'py-1.5 px-2 rounded-lg text-xs font-medium text-neutral-500';
+      });
+      document.getElementById('stratCheckpoints').innerHTML = st.splits.map((sp) => `
+        <div class="min-subcard p-3">
+          <div class="flex justify-between text-xs font-medium mb-1">
+            <span class="text-neutral-200">${sp.seg}</span>
+            <span class="text-neutral-400 tabular-nums">${sp.elev}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1 text-xs tabular-nums">
+            <div><span class="text-neutral-500 block">ALLURE</span><strong class="text-[#D97757]">${sp.pace}</strong></div>
+            <div><span class="text-neutral-500 block">PASSAGE</span><strong class="text-neutral-200">${sp.time}</strong></div>
+            <div><span class="text-neutral-500 block">CARDIO</span><strong class="text-[#60A5FA]">${sp.hr}</strong></div>
+          </div>
+          ${sp.nut ? `<div class="text-xs text-neutral-400 mt-1.5 pt-1.5 border-t border-[#232730]">Ravito : ${sp.nut}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    renderPhases();
+    renderShoes();
+    selectStrategy(0);
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    runLiveSync();
+  </script>
+</body>
+</html>
