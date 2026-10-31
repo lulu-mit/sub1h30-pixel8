@@ -1,0 +1,18 @@
+{
+  "name": "Sub-1h30 • Journal",
+  "short_name": "Sub-1h30",
+  "description": "Journal d'entraînement minimaliste Garmin & Google Docs optimisé pour Google Pixel 8",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0B0E",
+  "theme_color": "#0A0B0E",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%230A0B0E'/><circle cx='96' cy='96' r='64' fill='none' stroke='%23D97757' stroke-width='12'/><circle cx='96' cy='96' r='42' fill='none' stroke='%2360A5FA' stroke-width='12'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
